@@ -166,6 +166,12 @@ var (
 	CreationDateKey = attrKey(C.CFTypeRef(C.kSecAttrCreationDate))
 	// ModificationDateKey is for kSecAttrModificationDate
 	ModificationDateKey = attrKey(C.CFTypeRef(C.kSecAttrModificationDate))
+	// ServerKey is for kSecAttrServer
+    ServerKey = attrKey(C.CFTypeRef(C.kSecAttrServer))
+    // ProtocolKey is for kSecAttrProtocol
+    ProtocolKey = attrKey(C.CFTypeRef(C.kSecAttrProtocol))
+    // PortKey is for kSecAttrPort
+    PortKey = attrKey(C.CFTypeRef(C.kSecAttrPort))
 )
 
 // Synchronizable is the items synchronizable status
@@ -251,13 +257,22 @@ func (k *Item) SetSecClass(sc SecClass) {
 	k.attr[SecClassKey] = secClassTypeRef[sc]
 }
 
-// SetString sets a string attibute for a string key
+// SetString sets a string attribute for a string key
 func (k *Item) SetString(key string, s string) {
 	if s != "" {
 		k.attr[key] = s
 	} else {
 		delete(k.attr, key)
 	}
+}
+
+// SetInt sets an int32 attribute for a string key
+func (k *Item) SetInt(key string, i int32) {
+       if i != 0 {
+               k.attr[key] = i
+       } else {
+               delete(k.attr, key)
+       }
 }
 
 // SetService sets the service attribute
@@ -273,6 +288,21 @@ func (k *Item) SetAccount(a string) {
 // SetLabel sets the label attribute
 func (k *Item) SetLabel(l string) {
 	k.SetString(LabelKey, l)
+}
+
+// SetServer sets the server attribute
+func (k *Item) SetServer(l string) {
+       k.SetString(ServerKey, l)
+}
+
+// SetProtocol sets the protocol attribute
+func (k *Item) SetProtocol(l string) {
+       k.SetString(ProtocolKey, l)
+}
+
+// SetPort sets the port attribute
+func (k *Item) SetPort(l int32) {
+       k.SetInt(ProtocolKey, l)
 }
 
 // SetDescription sets the description attribute
@@ -391,6 +421,9 @@ type QueryResult struct {
 	AccessGroup      string
 	Label            string
 	Description      string
+    Server           string
+    Protocol         string
+    Port             int32
 	Data             []byte
 	CreationDate     time.Time
 	ModificationDate time.Time
@@ -483,6 +516,12 @@ func convertResult(d C.CFDictionaryRef) (*QueryResult, error) {
 			result.Label = CFStringToString(C.CFStringRef(v))
 		case DescriptionKey:
 			result.Description = CFStringToString(C.CFStringRef(v))
+        case ProtocolKey:
+            result.Protocol = CFStringToString(C.CFStringRef(v))
+        case ServerKey:
+            result.Server = CFStringToString(C.CFStringRef(v))
+        case PortKey:
+            result.Port = CFNumberToInterface(C.CFNumberRef(v)).(int32)
 		case DataKey:
 			b, err := CFDataToBytes(C.CFDataRef(v))
 			if err != nil {
